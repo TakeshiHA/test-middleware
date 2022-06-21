@@ -1,17 +1,17 @@
-# Builder
-FROM golang:latest as builder
-
-RUN mkdir /build
+FROM golang:alpine AS builder
 
 WORKDIR /build
 
-RUN export GO111MODULE=on
-RUN go get github.com/TakeshiHA/test-middleware/main
-RUN cd build && git clone https://github.com/TakeshiHA/test-middleware.git
+ADD go.mod .
 
-# Distribution
-RUN cd build/test-middleware/main && go build 
+COPY . .
 
-EXPOSE 8080
+RUN go build -o main main.go
 
-ENTRYPOINT ["build/test-middleware/main/main"]
+FROM alpine
+
+WORKDIR /build
+
+COPY --from=builder /build/main /build/main
+
+CMD ["./main"]
